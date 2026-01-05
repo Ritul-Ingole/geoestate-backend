@@ -12,6 +12,17 @@ router.post("/", async (req, res) =>{
     }
 });
 
+
+router.get("/", async (req, res) => {
+  try {
+    const properties = await Property.find();
+    res.json(properties);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 router.get("/nearby", async (req,res) =>{
     try{
         const {lng, lat, distance =5000} = req.query;
