@@ -1,55 +1,34 @@
 const express = require("express");
-const Property = require("../models/Property");
-
 const router = express.Router();
+const { 
+  createProperty, 
+  updatePropertyImages,
+  deletePropertyImage,
+  deleteProperty,
+  getAllProperties,
+  getNearbyProperties,
+  getPropertyById
+} = require('../controllers/propertyController');
 
-router.post("/", async (req, res) =>{
-    try{
-        const property = await Property.create(req.body);
-        res.status(201).json(property);
-    } catch(error){
-        res.status(400).json({error: error.message});
-    }
-});
+// Get all properties
+router.get("/", getAllProperties);
 
+// Get nearby properties (must be BEFORE /:id route)
+router.get("/nearby", getNearbyProperties);
 
-router.get("/", async (req, res) => {
-  try {
-    const properties = await Property.find();
-    res.json(properties);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Get single property by ID
+router.get("/:id", getPropertyById);
 
+// Create property with images
+router.post("/",  createProperty);
 
-// GET /api/properties/nearby
-router.get("/nearby", async (req, res) => {
-  try {
-    const { lng, lat, radius = 50000 } = req.query;
+// Update property images
+router.put("/:id/images",  updatePropertyImages);
 
-    if (!lng || !lat) {
-      return res.status(400).json({ error: "lng and lat are required" });
-    }
+// Delete single image
+router.delete("/:id/images", deletePropertyImage);
 
-    const properties = await Property.aggregate([
-      {
-        $geoNear: {
-          near: {
-            type: "Point",
-            coordinates: [parseFloat(lng), parseFloat(lat)],
-          },
-          distanceField: "distance",
-          maxDistance: parseInt(radius),
-          spherical: true,
-        },
-      },
-    ]);
-
-    res.json(properties);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Delete property (with S3 cleanup)
+router.delete("/:id", deleteProperty);
 
 module.exports = router;

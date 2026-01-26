@@ -1,2 +1,11 @@
-node_modules
+# env
 .env
+
+# node
+node_modules/
+
+# local uploads
+uploads/
+
+# OS
+.DS_Store

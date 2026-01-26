@@ -1,30 +1,52 @@
 require("dotenv").config();
-
 const express = require("express");
-const app = express();
+const mongoose = require("mongoose");
 const cors = require("cors");
 
+const app = express();
+
+app.use("/uploads", express.static("uploads"));
+
+// Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req,res) => {
-  res.send("geostate API is running");
+// Root endpoint
+app.get("/", (req, res) => {
+  res.json({
+    message: "GeoState API is running",
+    endpoints: {
+      properties: "/api/properties",
+      nearbyProperties: "/api/properties/nearby?lng=73.7898&lat=18.5590&radius=5000"
+    }
+  });
 });
 
+// Routes
 const propertyRoutes = require("./routes/propertyRoutes");
 app.use("/api/properties", propertyRoutes);
 
-const mongoose = require("mongoose");
-console.log("MONGO_URI:", process.env.MONGO_URI);
-
+// MongoDB Connection
+console.log("Connecting to MongoDB...");
 mongoose
-  .connect(process.env.MONGO_URI.trim())
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+  .connect("mongodb://127.0.0.1:27017/geostate" )
+  .then(() => console.log("✓ MongoDB connected"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-//const PORT = 3000;
-app.listen(process.env.PORT, ()=>{
-    console.log(`Server running on port ${process.env.PORT}`);
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    error: err.message || 'Something went wrong!'
+  });
+});
+
+// Start server
+const PORT = process.env.PORT;
+app.listen(PORT, () => {
+  console.log(`✓ Server running on port ${PORT}`);
 });
 
 app.post("/test", (req,res) => {
