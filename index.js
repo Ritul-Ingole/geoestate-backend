@@ -23,6 +23,10 @@ app.get("/", (req, res) => {
   });
 });
 
+//Auth Routes
+const authRoutes = require("./routes/authRoutes");
+app.use("/api/auth", authRoutes);
+
 // Routes
 const propertyRoutes = require("./routes/propertyRoutes");
 app.use("/api/properties", propertyRoutes);
