@@ -37,7 +37,8 @@ const propertySchema = new mongoose.Schema(
                 type: [Number], //here we'll store the lng and lat
                 required: true
             }
-        }
+        },
+        city: { type: String },
     },
     {timestamps: true}
 );
