@@ -1,34 +1,38 @@
-const express = require("express");
-const router = express.Router();
-const { 
-  createProperty, 
+const express = require('express');
+const router  = express.Router();
+
+const {
+  getProperties,
+  getPropertyById,
+  getNearbyProperties,
+  createProperty,
   updatePropertyImages,
   deletePropertyImage,
   deleteProperty,
-  getAllProperties,
-  getNearbyProperties,
-  getPropertyById
 } = require('../controllers/propertyController');
 
-// Get all properties
-router.get("/", getAllProperties);
+const auth   = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
-// Get nearby properties (must be BEFORE /:id route)
-router.get("/nearby", getNearbyProperties);
+// GET all properties — public
+router.get('/', getProperties);
 
-// Get single property by ID
-router.get("/:id", getPropertyById);
+// GET nearby properties — must be BEFORE /:id
+router.get('/nearby', getNearbyProperties);
 
-// Create property with images
-router.post("/",  createProperty);
+// GET single property by ID — public
+router.get('/:id', getPropertyById);
 
-// Update property images
-router.put("/:id/images",  updatePropertyImages);
+// POST create property — protected + image upload
+router.post('/', auth, upload.array('images', 15), createProperty);
 
-// Delete single image
-router.delete("/:id/images", deletePropertyImage);
+// PUT update property images
+router.put('/:id/images', updatePropertyImages);
 
-// Delete property (with S3 cleanup)
-router.delete("/:id", deleteProperty);
+// DELETE single image
+router.delete('/:id/images', deletePropertyImage);
+
+// DELETE property with S3 cleanup
+router.delete('/:id', deleteProperty);
 
 module.exports = router;

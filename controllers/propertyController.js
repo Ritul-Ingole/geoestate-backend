@@ -1,22 +1,21 @@
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const Property = require('../models/Property');
 
-// Controller: Get All Properties
-const getAllProperties = async (req, res) => {
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId:     process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+// GET /api/properties
+const getProperties = async (req, res) => {
   try {
     const properties = await Property.find({});
-    
-    res.status(200).json({
-      success: true,
-      count: properties.length,
-      data: properties
-    });
-    
-  } catch (error) {
-    console.error('Error fetching properties:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    res.json({ success: true, data: properties });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -64,30 +63,90 @@ const getNearbyProperties = async (req, res) => {
 const getPropertyById = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
-
     if (!property) {
-      return res.status(404).json({ 
-        success: false,
-        error: "Property not found" 
-      });
+      return res.status(404).json({ success: false, message: 'Property not found' });
     }
-
-    res.json({
-      success: true,
-      data: property
-    });
-  } catch (error) {
-    console.error('Error fetching property:', error);
-    res.status(500).json({ 
-      success: false,
-      error: error.message 
-    });
+    res.json({ success: true, data: property });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
+// POST /api/properties  (protected — seller must be logged in)
 const createProperty = async (req, res) => {
-  const property = await Property.create(req.body);
-  res.status(201).json({ success: true, data: property });
+  try {
+    const {
+      title,
+      price,
+      purpose,
+      propertyType,
+      city,
+      description,
+      bedrooms,
+      bathrooms,
+      area,
+      furnishedStatus,
+      lat,
+      lng,
+    } = req.body;
+
+    // Basic validation
+    if (!title || !price || !purpose || !propertyType || !city || !lat || !lng) {
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ success: false, message: 'At least one image is required' });
+    }
+
+    // Step 1: Create document first to get _id
+    const property = await Property.create({
+      title,
+      price:           Number(price),
+      purpose,
+      propertyType,
+      city,
+      description,
+      bedrooms:        bedrooms  ? Number(bedrooms)  : undefined,
+      bathrooms:       bathrooms ? Number(bathrooms) : undefined,
+      area:            area      ? Number(area)      : undefined,
+      furnishedStatus: furnishedStatus || undefined,
+      location: {
+        type:        'Point',
+        coordinates: [parseFloat(lng), parseFloat(lat)], // GeoJSON: [lng, lat]
+      },
+      images: [],
+    });
+
+    // Step 2: Upload images to S3 using the new _id as folder name
+    const imageUrls = [];
+    const bucket    = process.env.AWS_S3_BUCKET_NAME;
+    const cfUrl     = process.env.CLOUDFRONT_URL; // e.g. https://d1ujyj96xm2hzt.cloudfront.net
+
+    for (let i = 0; i < req.files.length; i++) {
+      const file = req.files[i];
+      const key  = `properties/${property._id}/image-${i + 1}.jpg`;
+
+      await s3.send(new PutObjectCommand({
+        Bucket:      bucket,
+        Key:         key,
+        Body:        file.buffer,
+        ContentType: file.mimetype,
+      }));
+
+      imageUrls.push(`${cfUrl}/${key}`);
+    }
+
+    // Step 3: Update document with image URLs
+    property.images = imageUrls;
+    await property.save();
+
+    res.status(201).json({ success: true, data: property });
+
+  } catch (err) {
+    console.error('createProperty error:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
 };
 
 const updatePropertyImages = async (req, res) => {
@@ -103,12 +162,4 @@ const deleteProperty = async (req, res) => {
   res.status(200).json({ success: true });
 };
 
-module.exports = {
-  createProperty,
-  updatePropertyImages,
-  deletePropertyImage,
-  deleteProperty,
-  getAllProperties,
-  getNearbyProperties,
-  getPropertyById
-};
+module.exports = { getProperties, getPropertyById, createProperty, getNearbyProperties, updatePropertyImages, deletePropertyImage, deleteProperty };
