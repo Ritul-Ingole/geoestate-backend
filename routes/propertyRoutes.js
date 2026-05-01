@@ -6,6 +6,7 @@ const {
   getPropertyById,
   getNearbyProperties,
   createProperty,
+  getMyListings,
   updatePropertyImages,
   deletePropertyImage,
   deleteProperty,
@@ -19,6 +20,9 @@ router.get('/', getProperties);
 
 // GET nearby properties — must be BEFORE /:id
 router.get('/nearby', getNearbyProperties);
+
+// GET logged-in user's listings — protected, must be BEFORE /:id
+router.get('/my-listings', auth, getMyListings);
 
 // GET single property by ID — public
 router.get('/:id', getPropertyById);

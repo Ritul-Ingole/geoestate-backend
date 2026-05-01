@@ -116,6 +116,7 @@ const createProperty = async (req, res) => {
         coordinates: [parseFloat(lng), parseFloat(lat)], // GeoJSON: [lng, lat]
       },
       images: [],
+      createdBy: req.user.id, // Associate property with the seller
     });
 
     // Step 2: Upload images to S3 using the new _id as folder name
@@ -149,6 +150,16 @@ const createProperty = async (req, res) => {
   }
 };
 
+// GET /api/properties/my-listings  (protected)
+const getMyListings = async (req, res) => {
+  try {
+    const properties = await Property.find({ createdBy: req.user.id }).sort({ createdAt: -1 });
+    res.json({ success: true, data: properties });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 const updatePropertyImages = async (req, res) => {
   res.status(200).json({ success: true, message: "Images update disabled (local mode)" });
 };
@@ -162,4 +173,4 @@ const deleteProperty = async (req, res) => {
   res.status(200).json({ success: true });
 };
 
-module.exports = { getProperties, getPropertyById, createProperty, getNearbyProperties, updatePropertyImages, deletePropertyImage, deleteProperty };
+module.exports = { getProperties, getPropertyById, createProperty, getNearbyProperties, getMyListings, updatePropertyImages, deletePropertyImage, deleteProperty };
