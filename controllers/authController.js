@@ -49,3 +49,41 @@ exports.login = async (req, res) => {
     },
   });
 };
+
+// GET /api/auth/me
+exports.getMe = async (req, res) => {
+  const user = await User.findById(req.user.id).select("-password");
+  res.json({ success: true, user });
+};
+
+// PUT /api/auth/update-profile
+exports.updateProfile = async (req, res) => {
+  const { name, phone } = req.body;
+  const user = await User.findByIdAndUpdate(
+    req.user.id,
+    { name, phone },
+    { new: true, runValidators: true }
+  ).select("-password");
+  res.json({ success: true, user });
+};
+
+
+// POST /api/auth/save-property/:propertyId
+exports.saveProperty = async (req, res) => {
+  const user = await User.findById(req.user.id);
+  const id = req.params.propertyId;
+  const already = user.savedProperties.includes(id);
+  if (already) {
+    user.savedProperties = user.savedProperties.filter(p => p.toString() !== id);
+  } else {
+    user.savedProperties.push(id);
+  }
+  await user.save();
+  res.json({ success: true, saved: !already });
+};
+
+// GET /api/auth/saved-properties
+exports.getSavedProperties = async (req, res) => {
+  const user = await User.findById(req.user.id).populate("savedProperties");
+  res.json({ success: true, properties: user.savedProperties });
+};

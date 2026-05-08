@@ -8,7 +8,13 @@ const app = express();
 app.use("/uploads", express.static("uploads"));
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3000",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+app.options("/{*path}", cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

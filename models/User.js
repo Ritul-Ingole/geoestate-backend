@@ -16,6 +16,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    phone: { 
+      type: String, 
+      default: "" 
+    },
+    savedProperties: [{ 
+      type: mongoose.Schema.Types.ObjectId, ref: "Property" 
+    }],
   },
   { timestamps: true }
 );
