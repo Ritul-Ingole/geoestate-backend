@@ -160,6 +160,27 @@ const getMyListings = async (req, res) => {
   }
 };
 
+// DELETE /api/properties/:id
+const deleteProperty = async (req, res) => {
+  const property = await Property.findById(req.params.id);
+  if (!property) return res.status(404).json({ success: false, error: "Not found" });
+  if (property.createdBy.toString() !== req.user.id)
+    return res.status(403).json({ success: false, error: "Unauthorized" });
+  await property.deleteOne();
+  res.json({ success: true });
+};
+
+// PATCH /api/properties/:id/status
+const updatePropertyStatus = async (req, res) => {
+  const property = await Property.findById(req.params.id);
+  if (!property) return res.status(404).json({ success: false, error: "Not found" });
+  if (property.createdBy.toString() !== req.user.id)
+    return res.status(403).json({ success: false, error: "Unauthorized" });
+  property.status = req.body.status;
+  await property.save();
+  res.json({ success: true, property });
+};
+
 const updatePropertyImages = async (req, res) => {
   res.status(200).json({ success: true, message: "Images update disabled (local mode)" });
 };
@@ -168,9 +189,4 @@ const deletePropertyImage = async (req, res) => {
   res.status(200).json({ success: true, message: "Delete image disabled (local mode)" });
 };
 
-const deleteProperty = async (req, res) => {
-  await Property.findByIdAndDelete(req.params.id);
-  res.status(200).json({ success: true });
-};
-
-module.exports = { getProperties, getPropertyById, createProperty, getNearbyProperties, getMyListings, updatePropertyImages, deletePropertyImage, deleteProperty };
+module.exports = { getProperties, getPropertyById, createProperty, getNearbyProperties, getMyListings, updatePropertyImages, deletePropertyImage, deleteProperty, updatePropertyStatus };

@@ -39,6 +39,11 @@ const propertySchema = new mongoose.Schema(
             }
         },
         city: { type: String },
+        status: {
+            type: String,
+            enum: ["active", "pending", "sold"],
+            default: "active",
+        }
     },
     {timestamps: true}
 );

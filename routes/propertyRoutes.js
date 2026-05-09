@@ -10,6 +10,7 @@ const {
   updatePropertyImages,
   deletePropertyImage,
   deleteProperty,
+  updatePropertyStatus,
 } = require('../controllers/propertyController');
 
 const auth   = require('../middleware/auth');
@@ -37,6 +38,9 @@ router.put('/:id/images', updatePropertyImages);
 router.delete('/:id/images', deletePropertyImage);
 
 // DELETE property with S3 cleanup
-router.delete('/:id', deleteProperty);
+router.delete('/:id', auth, deleteProperty);
+
+// PATCH update property status
+router.patch("/:id/status", auth, updatePropertyStatus);
 
 module.exports = router;
