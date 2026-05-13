@@ -43,6 +43,11 @@ const propertySchema = new mongoose.Schema(
             type: String,
             enum: ["active", "pending", "sold"],
             default: "active",
+        },
+        createdBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
         }
     },
     {timestamps: true}
