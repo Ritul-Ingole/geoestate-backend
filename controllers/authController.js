@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Property = require("../models/Property");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -86,4 +87,22 @@ exports.saveProperty = async (req, res) => {
 exports.getSavedProperties = async (req, res) => {
   const user = await User.findById(req.user.id).populate("savedProperties");
   res.json({ success: true, properties: user.savedProperties });
+};
+
+// POST /api/auth/change-password
+exports.changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const user = await User.findById(req.user.id);
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) return res.status(400).json({ success: false, error: 'Current password is incorrect.' });
+  user.password = newPassword;
+  await user.save(); // pre-save hook hashes it
+  res.json({ success: true });
+};
+
+// DELETE /api/auth/delete-account
+exports.deleteAccount = async (req, res) => {
+  await Property.deleteMany({ createdBy: req.user.id });
+  await User.findByIdAndDelete(req.user.id);
+  res.json({ success: true });
 };
