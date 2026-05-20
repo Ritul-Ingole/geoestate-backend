@@ -40,7 +40,7 @@ app.use("/api/properties", propertyRoutes);
 // MongoDB Connection
 console.log("Connecting to MongoDB...");
 mongoose
-  .connect("mongodb://127.0.0.1:27017/geostate" )
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✓ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
