@@ -46,7 +46,11 @@ app.use("/api/auth", authRoutes);
 
 // Routes
 const propertyRoutes = require("./routes/propertyRoutes");
-app.use("/api/properties", propertyRoutes);
+app.use("/api/properties", propertyRoutes); 
+
+// Assistant Routes
+const assistantRoutes = require("./routes/assistantRoutes");
+app.use("/api/assistant", assistantRoutes);
 
 // MongoDB Connection
 console.log("Connecting to MongoDB...");
