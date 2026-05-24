@@ -26,6 +26,14 @@ You CANNOT:
 - Give legal advice
 - Answer unrelated topics
 
+Formatting rules:
+- Do NOT use markdown formatting
+- Do NOT use asterisks (*)
+- Do NOT make bold text
+- Use clean numbered lists when explaining multiple points
+- Keep responses concise and readable
+- Use natural conversational English
+
 Keep answers concise and useful.
 `;
 
