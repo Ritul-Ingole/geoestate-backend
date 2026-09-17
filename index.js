@@ -48,10 +48,8 @@ const assistantRoutes = require("./routes/assistantRoutes");
 app.use("/api/assistant", assistantRoutes);
 
 // MongoDB Connection
-console.log("Connecting to MongoDB...");
 mongoose
   .connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/geostate")
-  .then(() => console.log("✓ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 // Error handling middleware
@@ -65,14 +63,5 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
-  console.log(`✓ Server running on port ${PORT}`);
-});
-
-app.post("/test", (req,res) => {
-    console.log(req.body);
-    res.json({
-        recieved: req.body
-    });
-});
+app.listen(PORT);
 
